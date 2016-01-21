@@ -4,7 +4,6 @@ check_convergence = function(likelihood, i, convergence_threshold){
   }
   else{
     relative_change = (likelihood[i-1] - likelihood[i]) / likelihood[i-1]
-    print(likelihood[(i-1):i])
     return(ifelse(relative_change < convergence_threshold, TRUE, FALSE))
   }
 }

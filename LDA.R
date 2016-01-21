@@ -30,7 +30,7 @@ LDA = function(W, n_topics = 3, max_iter = 100){
     gamma = obj$gamma
     # M step
     beta = update_beta(phi, W, k)
-    alpha = update_alpha(alpha, gamma)
+    alpha = update_alpha(alpha, gamma, M)
     
     if(check_convergence(likelihoods, i, convergence_threshold)) break
   }

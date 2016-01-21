@@ -18,29 +18,29 @@ update_beta = function(phi, w, k){
 }
 
 # update alpha
-Dlalpha <- function(alpha, gamma) {
+Dlalpha <- function(alpha, gamma, M) {
   return (M * (digamma(sum(alpha)) - digamma(alpha)) + colSums(digamma(gamma) - digamma(rowSums(gamma))))
 }
 
-Mtrialpha <- function(alpha) {
+Mtrialpha <- function(alpha, M) {
   return (M * trigamma(alpha)) 
 }
 
-update_alpha = function(alpha, gamma){
+update_alpha = function(alpha, gamma, M){
   MAXITER <- 1000
   EPSILON <- 0.00001
   step = 0
   conv = 10
   while (step < MAXITER && conv > EPSILON) {
-    Dalpha <- Dlalpha(alpha, gamma)
-    Malpha <- Mtrialpha(alpha)
-    c <- sum( Dalpha / Malpha ) / (1 / trigamma(sum(alpha)) + sum(1 / Malpha) )
+    Dalpha <- Dlalpha(alpha, gamma, M)
+    Malpha <- Mtrialpha(alpha, M)
+    c <- sum( Dalpha / Malpha ) / (-1 / trigamma(sum(alpha)) + sum(1 / Malpha) )
     HinvD <- (Dalpha - c) / Malpha
     alpha <- alpha - HinvD
     
     conv <- sum(HinvD * HinvD)
     step <- step + 1
-    cat(alpha ,"\n")
+    cat(alpha,"\n")
   } 
   return(alpha)
 }
