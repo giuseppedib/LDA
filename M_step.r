@@ -50,12 +50,12 @@ update_alpha = function(alpha, gamma, M){
 #####################################
 
 f = function(a, gamma, K, M){
-  ss = colSums(digamma(gamma) - digamma(rowSums(gamma)))
+  ss = sum(colSums(digamma(gamma) - digamma(rowSums(gamma))))
   return(M * (lgamma(K * a) - K * lgamma(a)) + (a - 1) * ss)
 }
 
 df = function(a, gamma, K, M){
-  ss = colSums(digamma(gamma) - digamma(rowSums(gamma)))
+  ss = sum(colSums(digamma(gamma) - digamma(rowSums(gamma))))
   out = M * (K * digamma(K * a) - K * digamma(a)) + ss
   return(out)
 }
@@ -76,10 +76,10 @@ update_alpha = function(alpha, gamma, M){
   while (step < MAXITER && conv > EPSILON) {
     a = exp(log_a)
     fvalue = f(a, gamma, length(alpha), M)
-    df = df(a, gamma, length(alpha), M)[1]
-    d2f = df(a, gamma, length(alpha), M)[1]
-    log_a = log_a - df/(d2f * a + df);
-    conv = abs(df)
+    dfvalue = df(a, gamma, length(alpha), M)[1]
+    d2fvalue = d2f(a, gamma, length(alpha), M)[1]
+    log_a = log_a - dfvalue/(d2fvalue * a + dfvalue);
+    conv = abs(dfvalue)
     cat(a, "\n")
     step = step + 1
   } 

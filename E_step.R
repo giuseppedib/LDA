@@ -2,12 +2,15 @@ compute_likelihood = function(gamma, Phi, alpha, beta){
   temp = digamma(gamma) - digamma(sum(gamma))
   # formula from appendix A3
   out = lgamma(sum(alpha)) - sum(lgamma(alpha)) + sum((alpha-1)*temp) + 
-    sum(t(Phi) * temp) + 
-    sum(Phi * t(ifelse(beta > 0, log(beta), 0))) +
-    lgamma(sum(gamma)) - sum(lgamma(gamma)) + sum((gamma-1)*temp) - 
+    sum(t(as.matrix(Phi)) * temp) +     
+    sum(Phi * t(ifelse(beta > 0, log(beta), 0))) -   # this bit can be written as   sum( (w[d,]*Phi) * t(log(beta)) )
+    ( lgamma(sum(gamma)) - sum(lgamma(gamma)) + sum((gamma-1)*temp) ) - 
     sum(ifelse(Phi>0, Phi * log(Phi), 0))
   return(out)
 }
+
+
+
 
 # E step for a specific document
 E_step_single_doc = function(gamma, Phi, alpha, beta, W_doc, max_iter, convergence_threshold){
@@ -21,7 +24,7 @@ E_step_single_doc = function(gamma, Phi, alpha, beta, W_doc, max_iter, convergen
     # normalise Phi
     Phi = Phi / rowSums(Phi)
     Phi[is.nan(Phi)] = 0
-    gamma = alpha + colSums(Phi)
+    gamma = (alpha + colSums(Phi))
     likelihood[i] = compute_likelihood(gamma, Phi, alpha, beta)
     if(check_convergence(likelihood, i, convergence_threshold)) break
   }
