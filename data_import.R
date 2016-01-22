@@ -9,3 +9,7 @@ n_words = nrow(voc)
 # create a "document x words" matrix
 W = matrix(0, n_docs, n_words)
 W[cbind(docs$V1, docs$V2)] = docs$V3
+
+freq = colSums(W)
+names(freq) = voc$V1
+W = W[, freq < 15]

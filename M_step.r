@@ -12,7 +12,7 @@
 update_beta = function(phi, w, k){
   beta = matrix(NA, k, ncol(w))
   for (i in seq(1:k))
-    beta[i,] <- colSums(t(phi[,i,]) * w)
+    beta[i,] <- colSums(t(phi[,i,]) * (w>0))
   beta <- beta / rowSums(beta)
   return(beta)
 }
@@ -43,4 +43,46 @@ update_alpha = function(alpha, gamma, M){
     cat(alpha,"\n")
   } 
   return(alpha)
+}
+
+#####################################
+### Follows the 1D alpha optimisation
+#####################################
+
+f = function(a, gamma, K, M){
+  ss = colSums(digamma(gamma) - digamma(rowSums(gamma)))
+  return(M * (lgamma(K * a) - K * lgamma(a)) + (a - 1) * ss)
+}
+
+df = function(a, gamma, K, M){
+  ss = colSums(digamma(gamma) - digamma(rowSums(gamma)))
+  out = M * (K * digamma(K * a) - K * digamma(a)) + ss
+  return(out)
+}
+
+d2f = function(a, gamma, K, M){
+  out = M * (K * K * trigamma(K * a) - K * trigamma(a))
+  return(out)
+}
+
+update_alpha = function(alpha, gamma, M){
+  MAXITER <- 1000
+  EPSILON <- 0.00001
+  step = 0
+  conv = 10
+  
+  init_a = 10
+  log_a = log(init_a)
+  while (step < MAXITER && conv > EPSILON) {
+    a = exp(log_a)
+    fvalue = f(a, gamma, length(alpha), M)
+    df = df(a, gamma, length(alpha), M)[1]
+    d2f = df(a, gamma, length(alpha), M)[1]
+    log_a = log_a - df/(d2f * a + df);
+    conv = abs(df)
+    cat(a, "\n")
+    step = step + 1
+  } 
+  out = rep(exp(log_a), length(alpha))
+  return(out)
 }
