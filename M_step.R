@@ -17,33 +17,33 @@ update_beta = function(phi, w, k){
   return(beta)
 }
 
-# update alpha
-Dlalpha <- function(alpha, gamma, M) {
-  return (M * (digamma(sum(alpha)) - digamma(alpha)) + colSums(digamma(gamma) - digamma(rowSums(gamma))))
-}
-
-Mtrialpha <- function(alpha, M) {
-  return (M * trigamma(alpha)) 
-}
-
-update_alpha = function(alpha, gamma, M){
-  MAXITER <- 1000
-  EPSILON <- 0.00001
-  step = 0
-  conv = 10
-  while (step < MAXITER && conv > EPSILON) {
-    Dalpha <- Dlalpha(alpha, gamma, M)
-    Malpha <- Mtrialpha(alpha, M)
-    c <- sum( Dalpha / Malpha ) / (-1 / trigamma(sum(alpha)) + sum(1 / Malpha) )
-    HinvD <- (Dalpha - c) / Malpha
-    alpha <- alpha - HinvD
-    
-    conv <- sum(HinvD * HinvD)
-    step <- step + 1
-    cat(alpha,"\n")
-  } 
-  return(alpha)
-}
+# # update alpha
+# Dlalpha <- function(alpha, gamma, M) {
+#   return (M * (digamma(sum(alpha)) - digamma(alpha)) + colSums(digamma(gamma) - digamma(rowSums(gamma))))
+# }
+# 
+# Mtrialpha <- function(alpha, M) {
+#   return (M * trigamma(alpha)) 
+# }
+# 
+# update_alpha = function(alpha, gamma, M){
+#   MAXITER <- 1000
+#   EPSILON <- 0.00001
+#   step = 0
+#   conv = 10
+#   while (step < MAXITER && conv > EPSILON) {
+#     Dalpha <- Dlalpha(alpha, gamma, M)
+#     Malpha <- Mtrialpha(alpha, M)
+#     c <- sum( Dalpha / Malpha ) / (-1 / trigamma(sum(alpha)) + sum(1 / Malpha) )
+#     HinvD <- (Dalpha - c) / Malpha
+#     alpha <- alpha - HinvD
+#     
+#     conv <- sum(HinvD * HinvD)
+#     step <- step + 1
+#     cat(alpha,"\n")
+#   } 
+#   return(alpha)
+# }
 
 #####################################
 ### Follows the 1D alpha optimisation
@@ -67,12 +67,13 @@ d2f = function(a, gamma, K, M){
 
 update_alpha = function(alpha, gamma, M){
   MAXITER <- 1000
-  EPSILON <- 0.00001
+  EPSILON <- 1e-6
   step = 0
   conv = 10
   
-  init_a = 10
+  init_a = 100
   log_a = log(init_a)
+  cat("Optimising alpha with 1-dim Newton-Rhapson.\n")
   while (step < MAXITER && conv > EPSILON) {
     a = exp(log_a)
     fvalue = f(a, gamma, length(alpha), M)
@@ -80,9 +81,10 @@ update_alpha = function(alpha, gamma, M){
     d2fvalue = d2f(a, gamma, length(alpha), M)[1]
     log_a = log_a - dfvalue/(d2fvalue * a + dfvalue);
     conv = abs(dfvalue)
-    cat(a, "\n")
+    cat("\t", a, "\n")
     step = step + 1
   } 
+  cat("Alpha optimisation completed.\n")
   out = rep(exp(log_a), length(alpha))
   return(out)
 }

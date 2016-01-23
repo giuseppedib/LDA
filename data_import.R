@@ -12,4 +12,7 @@ W[cbind(docs$V1, docs$V2)] = docs$V3
 
 freq = colSums(W)
 names(freq) = voc$V1
+# remove words that are infrequent
 W = W[, freq < 15]
+# remove empty documents
+W = W[rowSums(W) > 0, ]
