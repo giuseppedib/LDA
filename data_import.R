@@ -16,3 +16,5 @@ names(freq) = voc$V1
 W = W[, freq < 15]
 # remove empty documents
 W = W[rowSums(W) > 0, ]
+
+voc = voc[freq < 15, ]
