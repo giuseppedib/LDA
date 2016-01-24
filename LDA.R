@@ -5,6 +5,9 @@
 # 
 
 library(gtools)
+library(foreach)
+library(iterators)
+library(doParallel)
 
 source("E_step.R")
 source("M_step.R")
@@ -17,7 +20,7 @@ LDA = function(W, n_topics = 3, max_iter = 100, max_iter_E_step = 10, convergenc
   M = nrow(W)
   alpha <- rep(1, k)
   beta <- rdirichlet(k, rep(1, V))
-  gamma <- matrix((alpha + V/k), M, k) #lapply(1:M, function(y) alpha + V/k)
+  gamma <- matrix((alpha + V/k), M, k)
   phi <- array(0, dim = c(V, k, M))
   
   likelihood = rep(NA, max_iter)
@@ -31,6 +34,7 @@ LDA = function(W, n_topics = 3, max_iter = 100, max_iter_E_step = 10, convergenc
     beta = update_beta(phi, W, k)
     alpha = update_alpha(alpha, gamma, M)
     
+    cat("Iteration", i, "of EM completed\n")
     if(check_convergence(likelihood, i, convergence_threshold)) break
   }
   return(list(likelihood = likelihood[1:i], phi = obj$phi, gamma = obj$gamma, alpha = alpha, beta=beta))

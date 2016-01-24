@@ -32,13 +32,30 @@ E_step_single_doc = function(gamma, Phi, alpha, beta, W_doc, max_iter, convergen
   return(list(gamma = gamma, Phi = Phi, likelihood = likelihood[i]))
 }
 
+
+# E_step = function(gamma, Phi, alpha, beta, W, max_iter, convergence_threshold){
+#   likelihoods = rep(NA, nrow(W))
+#   for(i in 1:nrow(W)){
+#     obj = E_step_single_doc(gamma[i, ], Phi[, , i], alpha, beta, W[i, ], max_iter, convergence_threshold)
+#     likelihoods[i] = obj$likelihood
+#     Phi[, , i] = obj$Phi
+#     gamma[i, ] = obj$gamma
+#   }
+#   return(list(gamma = gamma, phi=Phi, likelihood = sum(likelihoods)))
+# }
+
 E_step = function(gamma, Phi, alpha, beta, W, max_iter, convergence_threshold){
   likelihoods = rep(NA, nrow(W))
+  # Use package foreach to parallelise E step
+  `%op%` <- if (getDoParRegistered()) `%dopar%` else `%do%`
+  input_list = create_iter_list(gamma, Phi, W)
+  res = foreach(input = iter(input_list), .export = c("E_step_single_doc", "compute_likelihood", "check_convergence")) %op% {
+    E_step_single_doc(input$gamma, input$Phi, alpha, beta, input$W, max_iter, convergence_threshold)
+  }
   for(i in 1:nrow(W)){
-    obj = E_step_single_doc(gamma[i, ], Phi[, , i], alpha, beta, W[i, ], max_iter, convergence_threshold)
-    likelihoods[i] = obj$likelihood
-    Phi[, , i] = obj$Phi
-    gamma[i, ] = obj$gamma
+    likelihoods[i] = res[[i]]$likelihood
+    Phi[, , i] = res[[i]]$Phi
+    gamma[i, ] = res[[i]]$gamma
   }
   return(list(gamma = gamma, phi=Phi, likelihood = sum(likelihoods)))
 }
