@@ -34,7 +34,7 @@ LDA = function(W, n_topics = 3, max_iter = 100, max_iter_E_step = 10, convergenc
     beta = update_beta(phi, W, k)
     alpha = update_alpha(alpha, gamma, M)
     
-    cat("Iteration", i, "of EM completed\n")
+    cat(sprintf("Iteration %d of EM completed. Likelihood: %1.3f \n", i, likelihood[i]))
     if(check_convergence(likelihood, i, convergence_threshold)) break
   }
   return(list(likelihood = likelihood[1:i], phi = obj$phi, gamma = obj$gamma, alpha = alpha, beta=beta))
