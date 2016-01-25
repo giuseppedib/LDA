@@ -23,4 +23,4 @@ set.seed(0)
 train = sample(1:nrow(W), 0.9*nrow(W))
 Wtrain = W[train, ]
 Wtest = W[setdiff(1:nrow(W), train), ]
-save(Wtrain, Wtest, voc, file="nips.RData")
+# save(Wtrain, Wtest, voc, file="nips.RData")
