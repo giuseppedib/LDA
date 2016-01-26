@@ -22,31 +22,34 @@ Dlalpha <- function(alpha, gamma, M) {
   return (M * (digamma(sum(alpha)) - digamma(alpha)) + colSums(digamma(gamma) - digamma(rowSums(gamma))))
 }
 
-Mtrialpha <- function(alpha, M) {
-  return (M * trigamma(alpha)) 
-}
 
 update_alpha_vec = function(alpha, gamma, M){
-  MAXITER <- 1000
+  MAXITER <- 100
   EPSILON <- 0.00001
   step = 0
   conv = 10
-  cat("Vectorised Newton-Rhapson.")
+  log_alpha = log(alpha)
   while (step < MAXITER && conv > EPSILON) {
     Dalpha <- Dlalpha(alpha, gamma, M)
-    Malpha <- Mtrialpha(alpha, M)
-    c <- sum( Dalpha / Malpha ) / (-1 / trigamma(sum(alpha)) + sum(1 / Malpha) )
-    HinvD <- (Dalpha - c) / Malpha
+    gradf <- Dalpha*alpha
+    H <- M*(trigamma(sum(alpha)) - diag(trigamma(alpha)))
+    grad2f <- H * alpha + diag(gradf)
+    #hvalue <- h(alpha, M)
+    #c <- sum( Dalpha / hvalue ) / (1 / (M*trigamma(sum(alpha))) + sum(1 / hvalue) )
+    #HinvD <- (Dalpha - c) / hvalue
+    HinvD <- solve(H, gradf)
+    log_alpha <- log_alpha - HinvD
+    alpha <- exp(log_alpha)
     alpha <- alpha - HinvD
-    # hack to keep alphas positive
-    alpha <- pmax(alpha, 1e-16)
     
     conv <- sum(HinvD * HinvD)
     step <- step + 1
     cat(alpha,"\n")
   } 
+  cat(alpha, "\n")
   return(alpha)
 }
+
 
 #####################################
 ### Follows the 1D alpha optimisation
