@@ -2,7 +2,24 @@
 
 source("M_step.R")
 
-onlineLDA_EM <- function(w, max_iter = 100, conv_threshold = 1e-3, MAX_ITER_var_EM = 1000) {
+# compute perplexity
+calculate_perplexity = function(test_W, alpha, beta, max_iter=30, convergence_threshold=1e-6){
+  n_topics = length(alpha)
+  M = dim(test_W)[1]
+  V = dim(test_W)[2]
+  
+  gamma <- matrix((alpha + V/n_topics), M, n_topics)
+  phi <- array(0, dim = c(V, n_topics, M))
+  
+  res_obj = E_step(gamma, phi, alpha, beta, test_W, max_iter, convergence_threshold)
+  
+  loglikelihood = res_obj$likelihood
+  perplexity = exp(- loglikelihood / sum(test_W))
+  return(perplexity)
+}
+
+
+onlineLDA_EM <- function(w, testw, n_iter = 100, conv_threshold = 1e-3, MAX_ITER_var_EM = 1000) {
   k = n_topics
   V = ncol(w)
   M = nrow(w)
@@ -14,7 +31,7 @@ onlineLDA_EM <- function(w, max_iter = 100, conv_threshold = 1e-3, MAX_ITER_var_
   
   M <- nrow(gamma)
   conv_likelihood <- 100
-  for(i in 1:max_iter){
+  for(i in 1:n_iter){
     rho <- (2 + i)**(-0.75)
     doc <- sample(c(1:M),1)
     gamma[doc,] <- alpha + ncol(w)/length(alpha)
@@ -37,11 +54,19 @@ onlineLDA_EM <- function(w, max_iter = 100, conv_threshold = 1e-3, MAX_ITER_var_
     # update alpha and eta
     alpha <- update_alpha(alpha, gamma, M)
     eta <- update_eta(eta, lambda, M)
+    
+    beta <- lambda / rowSums(lambda)
+    perplexity = rep(NA, n_iter %/% 100)
+    if(i %% 100 == 0){
+      j = i %/% 100
+      perplexity[j] = calculate_perplexity(test_W, alpha, beta)
+      cat("Iter", i, "Test set perplexity", perplexity[j], "\n")
+    }
 
     #likelihood <- compute_likelihood(gamma[doc, ], phi[,,doc], alpha, lambda, eta)
     #conv_likelihood <- abs((old_likelihood - likelihood) / old_likelihood)
   }
-  return(list(alpha=alpha, eta=eta, gamma = gamma, lambda=lambda))
+  return(list(alpha=alpha, eta=eta, gamma = gamma, lambda = lambda, beta=beta, perplexity = perplexity))
 }
 
 
