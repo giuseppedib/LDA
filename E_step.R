@@ -19,7 +19,7 @@ E_step_single_doc = function(gamma, Phi, alpha, beta, W_doc, max_iter, convergen
     # loop over vocabulary, but only those words that have count > 0
     subset_words = which(W_doc > 0)
     for(n in subset_words){
-      Phi[n, ] = beta[, n] * exp(digamma(gamma))
+      Phi[n, ] = beta[, n] * exp(digamma(gamma) - digamma(sum(gamma)))
     }
     # normalise Phi
     Phi = Phi / rowSums(Phi)
