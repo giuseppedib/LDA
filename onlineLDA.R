@@ -1,6 +1,7 @@
 # Stochastic Variational EM
 
 source("M_step.R")
+source("E_step.R")
 
 # compute perplexity
 calculate_perplexity = function(test_W, alpha, beta, max_iter=30, convergence_threshold=1e-6){
@@ -31,13 +32,12 @@ onlineLDA <- function(w, testw, n_topics, n_iter = 100, conv_threshold = 1e-3, M
   
   M <- nrow(gamma)
   conv_likelihood <- 100
+  perplexity = rep(NA, n_iter %/% 10)
   for(i in 1:n_iter){
-    rho <- (2 + i)**(-0.75)
+    rho <- (64 + i)**(-0.75)
     doc <- sample(c(1:M),1)
-    gamma[doc,] <- alpha + ncol(w)/length(alpha)
     iter2 <- 0
     conv_value <- 100
-    # old_likelihood <- compute_likelihood(gamma[doc, ], phi[,,doc], alpha, lambda, eta)
     while ( conv_value > conv_threshold && iter2 < MAX_ITER_var_EM) {
       old_phi <- phi[,,doc]
       old_gamma <- gamma[doc,]
@@ -52,23 +52,19 @@ onlineLDA <- function(w, testw, n_topics, n_iter = 100, conv_threshold = 1e-3, M
     lambda <- (1 - rho) * lambda + rho * mean_lambda
     
     # update alpha and eta
-    alpha <- update_alpha(alpha, gamma, M)
-    # eta <- update_eta(eta, lambda, M)
+    newalpha <- update_alpha(alpha, gamma[doc, , drop=FALSE], 1)
+    alpha <- (1 - rho) * alpha + rho * newalpha #- rho * df(alpha[1], gamma, k, M) / d2f(alpha[1], gamma, k, M)
+    # eta <- eta - rho * df(eta, lambda, V, k) / d2f(eta, lambda, V, k)
+    cat("alpha", alpha[1] "\n\n")
     
     beta <- lambda / rowSums(lambda)
-    perplexity = rep(NA, n_iter %/% 100)
-    if(i %% 100 == 0){
-      j = i %/% 100
+    if(i %% 10 == 0){
+      j = i %/% 10
       perplexity[j] = calculate_perplexity(testw, alpha, beta)
-      cat("Iter", i, "Test set perplexity", perplexity[j], "\n")
     }
-
-    #likelihood <- compute_likelihood(gamma[doc, ], phi[,,doc], alpha, lambda, eta)
-    #conv_likelihood <- abs((old_likelihood - likelihood) / old_likelihood)
   }
   return(list(alpha=alpha, eta=eta, gamma = gamma, lambda = lambda, beta=beta, perplexity = perplexity))
 }
-
 
 # compute_likelihood = function(gamma, Phi, alpha, lambda, eta){
 #   E_log_theta = digamma(gamma) - digamma(sum(gamma))
