@@ -19,7 +19,7 @@ calculate_perplexity = function(test_W, alpha, beta, max_iter=30, convergence_th
 }
 
 
-onlineLDA_EM <- function(w, testw, n_iter = 100, conv_threshold = 1e-3, MAX_ITER_var_EM = 1000) {
+onlineLDA <- function(w, testw, n_topics, n_iter = 100, conv_threshold = 1e-3, MAX_ITER_var_EM = 1000) {
   k = n_topics
   V = ncol(w)
   M = nrow(w)
@@ -53,13 +53,13 @@ onlineLDA_EM <- function(w, testw, n_iter = 100, conv_threshold = 1e-3, MAX_ITER
     
     # update alpha and eta
     alpha <- update_alpha(alpha, gamma, M)
-    eta <- update_eta(eta, lambda, M)
+    # eta <- update_eta(eta, lambda, M)
     
     beta <- lambda / rowSums(lambda)
     perplexity = rep(NA, n_iter %/% 100)
     if(i %% 100 == 0){
       j = i %/% 100
-      perplexity[j] = calculate_perplexity(test_W, alpha, beta)
+      perplexity[j] = calculate_perplexity(testw, alpha, beta)
       cat("Iter", i, "Test set perplexity", perplexity[j], "\n")
     }
 
